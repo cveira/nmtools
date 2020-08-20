@@ -1,0 +1,6 @@
+McAfeeFramework
+McShield
+McTaskManager
+
+McAfeeEngineService
+mfevtp

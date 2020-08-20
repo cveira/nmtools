@@ -1,0 +1,198 @@
+A. SYSTEM REQUIREMENTS:
+   =============================================================================
+
+1. A working PowerShell v2 installation configured to run scripts. The full
+   Windows Management Framework is recommended.
+   
+   http://support.microsoft.com/kb/968929/en-us
+
+2. Optional, but recommended, a working OpenSLIM installation.
+
+3. If you are going to host the NMAgent Session Stores in SQL Server
+   (recommended), you will also need a working instance of SQL Server 2005 or
+   higher.
+
+   A common practice is to use the same one you might be using to host the
+   OpenSLIM database.
+   
+4. If you are going to host the NMAgent Session Stores in SQL Server, make sure
+   your system has a working Microsoft Jet Database Engine 4.0 SP8.
+
+5. The latest package of the "PsTools", from SysInternals.
+
+   http://download.sysinternals.com/Files/PsTools.zip
+
+
+
+B. INITIAL CONFIGURATION STEPS:
+   =============================================================================
+   
+1. Decompress NMTools package (C:\NMAgent, for example).
+
+2. Download the latest Sysinternals PsTools package from:
+
+   http://download.sysinternals.com/Files/PsTools.zip
+   
+3. Decompress PsTools.zip into the .\bin folder.
+
+4. Set up the profile settings files in the .\settings folder. The most
+   important parameters are the following:
+
+   $AgentUserId           = 18              # Use your OpenSLIM Contact UserId
+   $AgentUserName         = 'cveira'        #
+   $AgentUserSessionStore = '_SessionStore' # Or, 'cveira' as soon as your
+                                            # personal SessionStore is ready.
+                                            # Refer to "Section E" for more
+                                            # information on this topic.
+
+   $NMAgentDbType         = "ms-sql-server" # "<ms-access|ms-sql-server>"
+
+   $NMAgentDbServer       = "YourSqlServer.corp\YourInstance"
+   $NMAgentDbName         = "NMAgent"
+   $NMAgentDbUserName     = ""              # Leave it blank to use your Windows
+                                            # Security Context.
+   $NMAgentDbPassword     = ""
+
+   $OpenSLIMDbServer      = "YourSqlServer.corp\YourInstance"
+   $OpenSLIMDbName        = "OpenSLIM-current"
+   $OpenSLIMDbUserName    = ""              # Leave it blank to use your Windows
+                                            # Security Context.
+   $OpenSLIMDbPassword    = ""
+   
+   - It is important to do it in ALL your "settings-<ProfileName>.ps1" files.
+     Specially in "settings-main.ps1", which is the one that is use as the
+     default profile.
+
+5. Create a credentials file on .\auth\_settings:
+
+   - You can use the contents of .\auth\_settings\_credentials.ps1.sample file
+     as a reference for creating your file.
+     
+   - Refer for "Section D" ("Security Considerations") for further information.
+   
+   - It is strongly recommended to use the .\EncryptCredendtials.ps1 script
+     to protect your credentials.
+     
+   - If you don't create a credentials file, make sure to disable Brute Force
+     Login and MultiCredential facilities in your ALL your profile settings
+     files:
+     
+     $BruteForceLoginMode = $false
+     $MultiCredentialMode = $false
+     
+     These settings will force the NMAgent to ask you for the password assigned
+     to the user defined in the following variable:
+     
+     $NetworkUserId       = "Administrator"
+
+
+
+C. SQL SERVER CONFIGURATION STEPS:
+   =============================================================================
+
+1. Restore .\NMAgent-FullBackup-20101211-1.bak on a SQL Server of choice.
+
+   - I would suggest to use the same server where the OpenSLIM database is
+     hosted.
+
+2. Be sure to verify connectivity between the NMAgent Node (the server in which
+   you are installing the NMTools) and the SQL Server:
+   routing, firewall rules, etc.
+
+3. Set up SQL Server security accordingly.
+
+   - I would suggest to use Trusted Authentication wherever is possible.
+   - If that's not an option for whatever reason, there is a predefined
+     sql user "nmagent" that you can re-use/re-create for your own
+     purposes.
+   - Security Settings should be applied, not only to the NMAgent database, but
+     also to the OpenSLIM one.
+
+4. Create an ODBC System Data Source to verify your SQL connectivity. This step
+   is optional but recommended. This Data Source is not needed, therefore, you
+   can delete it after you have run the connection testing procedure.
+
+
+
+D. NMAGENT SECURITY CONSIDERATIONS:
+   =============================================================================
+
+There are certain files and folders that should be protected from unauthorized
+access because they contain or might contain sensitive information. Those
+objects are:
+
+  1. your Credentials files:
+  
+     - .\auth\_settings\credentials.ps1
+     - .\modules\<LibraryName>\_settings\credentials.ps1
+
+  2. the logs directory: .\logs
+  
+  3. the export directory: .\export
+
+General Windows Security Hardening techniques apply depending, of course, on
+your particular case. Nevertheless, there are some big security measures that
+you can try:
+
+  1. Set up ACLs in NTFS accordingly.
+  
+  2. Set up NTFS auditing accordingly.
+  
+  3. Set up Monitoring and Alerts on the Windows Security Events that
+     correspond to your auditing settings.
+
+  4. Use the .\EncryptCredendtials.ps1 script to protect your credentials file
+     through the Windows DPAPI and DELETE the original credentials.ps1 with
+     a Secure File Wiping utility.
+
+
+
+E. CREATING YOUR PERSONAL SESSION STORE:
+   =============================================================================
+   
+1. If you haven't run any Session and save it in your Session Store, do it for
+   the first time:
+   
+   - Go to the "OpenSLIM" library (.\modules\openslim), copy one module and
+     paste it on its "_enabled" folder (.\modules\openslim\_enabled).
+     
+   > Choose a Target Computer and run an NMAgent session against it:
+   
+     PS C:\NMAgent> .\nmagent.ps1 run -profile openslim -node YourNodeName -save
+     
+   - Clean your .\modules\openslim\_enabled empty after the execution.
+   
+2. If you already have Session Data stored in the default Session Store, you
+   can start the procedure from here:
+     
+   - Verify that your Session has been saved correctly:
+   
+     PS C:\NMAgent> .\nmagent.ps1 query
+     
+   > Archive this Session into a new off-line Session Store:
+
+     PS C:\NMAgent> .\nmagent.ps1 archive -store cveira
+     
+   - Verify that your new Session Store has been created correctly:
+
+     PS C:\NMAgent> .\nmagent.ps1 list -store none
+     
+   - Verify that your Session has been archived correctly:
+
+     PS C:\NMAgent> .\nmagent.ps1 query -store cveira
+
+   > Change the value for $AgentUserSessionStore in your profile settings files
+     so that you can use the new Session Store as your primary Session Store. It
+     is important to do it in ALL your "settings-<ProfileName>.ps1" files.
+     Specially in "settings-main.ps1", which is the one that is use as the
+     default profile:
+     
+     $AgentUserSessionStore = 'cveira'
+     
+   - Verify that your new settings are working:
+
+     PS C:\NMAgent> .\nmagent.ps1 query
+     
+   - Verify that you can still access your previous Session Store:
+
+     PS C:\NMAgent> .\nmagent.ps1 query -store _SessionStore

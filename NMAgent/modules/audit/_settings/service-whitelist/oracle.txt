@@ -1,0 +1,3 @@
+OracleMTSRecoveryService
+OracleOraHome92ClientCache
+JavaQuickStarterService

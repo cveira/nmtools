@@ -1,0 +1,15 @@
+python.exe
+pythonw.exe
+VisualSVNServer.exe
+svnserve.exe
+SyncBack.exe
+Cerberus.exe
+WZQKPICK.EXE
+UnlockerAssistant.exe
+ApacheMonitor.exe
+httpd.exe
+rotatelogs.exe
+tomcat6.exe
+tomcat6w.exe
+mtail.exe
+DWRCS.EXE

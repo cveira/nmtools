@@ -1,0 +1,1 @@
+Disconnect-VIServer -Confirm:$false

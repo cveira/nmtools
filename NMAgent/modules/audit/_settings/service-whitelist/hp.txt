@@ -1,0 +1,16 @@
+CIMnotify
+CpqNicMgmt
+CpqRcmc
+CpqRIIS
+cpqvcagent
+CqMgHost
+CqMgServ
+CqMgStor
+MIService
+MWAService
+MWECService
+ScopeService
+sysdown
+SysMgmtHp
+
+HPBladeSystemEnclosureMonitorService
